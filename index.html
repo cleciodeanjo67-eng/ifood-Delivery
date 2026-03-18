@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Pedido Delivery - APP COMPLETO</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <style>
+        :root { --red: #ea1d2c; --dark: #18181b; --gray: #f4f4f5; --green: #166534; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; padding: 0; overflow-x: hidden; }
+        .tela { display: none; min-height: 100vh; width: 100%; }
+        .ativa { display: block; }
+        .container { max-width: 480px; margin: auto; padding: 20px; box-sizing: border-box; }
+        
+        /* UI Components */
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        
+        /* Buttons */
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; margin-bottom: 10px; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-outline { background: transparent; color: var(--red); border: 2px solid var(--red); }
+        .btn-perfil { background: var(--dark); color: white; text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 25px; margin-top: 15px; }
+        
+        .header { background: var(--red); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; position: sticky; top: 0; z-index: 10; }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .status-pendente { background: #ffe4e6; color: #e11d48; }
+    </style>
+</head>
+<body>
+
+<div id="tela-auth" class="tela ativa">
+    <div class="container" style="text-align: center; padding-top: 60px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/IFood_logo.svg/1200px-IFood_logo.svg.png" width="120">
+        <h2 style="margin-top: 20px;">Bem-vindo</h2>
+        <div class="card">
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="senha" placeholder="Senha">
+            <button class="btn btn-red" onclick="appLogin()">ENTRAR</button>
+            <button class="btn btn-outline" onclick="appCadastro()">CRIAR NOVA CONTA</button>
+        </div>
+    </div>
+</div>
+
+<div id="tela-perfis" class="tela">
+    <div class="header">COMO DESEJA ACESSAR?</div>
+    <div class="container">
+        <button class="btn btn-perfil" onclick="irPara('area-cliente')">SOU CLIENTE <span>➔</span></button>
+        <button class="btn btn-perfil" onclick="irPara('area-loja')">SOU ESTABELECIMENTO <span>➔</span></button>
+        <button class="btn btn-perfil" onclick="irPara('area-moto')">SOU ENTREGADOR <span>➔</span></button>
+        
+        <button class="btn btn-outline" style="margin-top: 60px;" onclick="deslogar()">SAIR DA CONTA</button>
+    </div>
+</div>
+
+<div id="area-cliente" class="tela">
+    <div class="header">CARDÁPIO DIGITAL</div>
+    <div class="container">
+        <div id="feed-produtos" class="card">Carregando itens...</div>
+        <h4>Meus Pedidos</h4>
+        <div id="meus-pedidos-rastreio"></div>
+        <button class="btn btn-outline" onclick="irPara('tela-perfis')">VOLTAR</button>
+    </div>
+</div>
+
+<div id="area-loja" class="tela">
+    <div class="header">PAINEL ADMINISTRATIVO</div>
+    <div class="container">
+        <div class="card" style="background: var(--dark); color: white;">
+            <small>CONTAS A RECEBER (PIX/Cartão)</small>
+            <h2 id="saldo-loja">R$ 0,00</h2>
+        </div>
+        <div class="card">
+            <h4>Novo Produto (Marketing Service)</h4>
+            <input type="text" id="p-nome" placeholder="Nome do Prato">
+            <input type="number" id="p-preco" placeholder="Preço R$">
+            <button class="btn btn-red" onclick="salvarProduto()">PUBLICAR ITEM</button>
+        </div>
+        <div id="gestao-pedidos-loja"><h4>Pedidos do Dia</h4></div>
+        <button class="btn btn-outline" onclick="irPara('tela-perfis')">VOLTAR</button>
+    </div>
+</div>
+
+<div id="area-moto" class="tela">
+    <div class="header">CENTRAL DO ENTREGADOR</div>
+    <div class="container">
+        <div class="card" style="background: var(--green); color: white;">
+            <small>MEUS GANHOS TOTAIS</small>
+            <h2 id="saldo-moto">R$ 0,00</h2>
+        </div>
+        <div id="lista-entregas-gps"><h4>Entregas Próximas</h4></div>
+        <button class="btn btn-outline" onclick="irPara('tela-perfis')">VOLTAR</button>
+    </div>
+</div>
+
+<script>
+    // CONFIGURAÇÃO FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyAhjdwdfAXf1H7QG9Mn0VT_L43LdvnueaQ",
+        authDomain: "meu-pedido-delivery-7cd35.firebaseapp.com",
+        projectId: "meu-pedido-delivery-7cd35",
+        storageBucket: "meu-pedido-delivery-7cd35.appspot.com",
+        messagingSenderId: "364536761763",
+        appId: "1:364536761763:web:583971c2642130386628f4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // NAVEGAÇÃO ENTRE ESPECTROS
+    function irPara(id) {
+        document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+        document.getElementById(id).classList.add('ativa');
+        window.scrollTo(0,0);
+    }
+
+    // AUTH SERVICE (Cadastro e Login)
+    async function appCadastro() {
+        const e = document.getElementById('email').value;
+        const s = document.getElementById('senha').value;
+        if(!e || s.length < 6) return alert("E-mail válido e senha de 6 dígitos!");
+        try {
+            await auth.createUserWithEmailAndPassword(e, s);
+            alert("Conta criada! Selecione o seu perfil.");
+            irPara('tela-perfis'); // Redirecionamento imediato
+        } catch(err) { alert("Erro: " + err.message); }
+    }
+
+    async function appLogin() {
+        const e = document.getElementById('email').value;
+        const s = document.getElementById('senha').value;
+        try {
+            await auth.signInWithEmailAndPassword(e, s);
+            irPara('tela-perfis');
+        } catch(err) { alert("Acesso Negado!"); }
+    }
+
+    function deslogar() { auth.signOut(); irPara('tela-auth'); }
+
+    // MARKETING & FEED SERVICE
+    async function salvarProduto() {
+        const n = document.getElementById('p-nome').value;
+        const p = parseFloat(document.getElementById('p-preco').value);
+        if(n && p) {
+            await db.collection("cardapio").add({ nome: n, preco: p, data: Date.now() });
+            alert("Item online!");
+        }
+    }
+
+    db.collection("cardapio").orderBy("data", "desc").onSnapshot(snap => {
+        const feed = document.getElementById('feed-produtos');
+        feed.innerHTML = "<h3>Cardápio</h3>";
+        snap.forEach(doc => {
+            const i = doc.data();
+            feed.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+                <span><b>${i.nome}</b><br>R$ ${i.preco.toFixed(2)}</span>
+                <button onclick="gerarPedido('${i.nome}', ${i.preco})" style="background:var(--red); color:white; border:none; padding:8px; border-radius:5px;">PEDIR</button>
+            </div>`;
+        });
+    });
+
+    // CHECKOUT & LOGÍSTICA SERVICE
+    async function gerarPedido(nome, valor) {
+        await db.collection("pedidos").add({
+            cliente: auth.currentUser.email,
+            item: nome, valor: valor, taxa: 7.00, status: "pendente", hora: Date.now()
+        });
+        alert("Pedido enviado!");
+    }
+
+    db.collection("pedidos").orderBy("hora", "desc").onSnapshot(snap => {
+        const dLoja = document.getElementById('gestao-pedidos-loja');
+        const dMoto = document.getElementById('lista-entregas-gps');
+        const dCli = document.getElementById('meus-pedidos-rastreio');
+        
+        dLoja.innerHTML = ""; dMoto.innerHTML = ""; dCli.innerHTML = "";
+
+        snap.forEach(doc => {
+            const p = doc.data();
+            const id = doc.id;
+            const card = `<div class="card"><span class="badge status-pendente">${p.status}</span><br><b>${p.item}</b><br>`;
+
+            if(p.status === "pendente") dLoja.innerHTML += card + `<button class="btn btn-red" onclick="att('${id}','preparando')">ACEITAR</button></div>`;
+            if(p.status === "pronto") dMoto.innerHTML += card + `<button class="btn btn-red" onclick="att('${id}','em rota')">COLETAR</button></div>`;
+            if(p.status === "em rota") dMoto.innerHTML += card + `<button class="btn btn-perfil" onclick="concluir('${id}',${p.valor},${p.taxa})">ENTREGUE</button></div>`;
+            
+            if(p.cliente === auth.currentUser.email) dCli.innerHTML += card + `</div>`;
+        });
+    });
+
+    async function att(id, status) { await db.collection("pedidos").doc(id).update({ status }); }
+
+    // FINANCEIRO SERVICE (Contas a receber)
+    async function concluir(id, v, t) {
+        const ref = db.collection("financas").doc("geral");
+        await db.runTransaction(async (tr) => {
+            const d = await tr.get(ref);
+            const s = d.exists ? d.data() : { loja: 0, moto: 0 };
+            tr.set(ref, { loja: s.loja + v, moto: s.moto + t });
+            tr.update(db.collection("pedidos").doc(id), { status: "finalizado" });
+        });
+    }
+
+    db.collection("financas").doc("geral").onSnapshot(d => {
+        if(d.exists) {
+            document.getElementById('saldo-loja').innerText = `R$ ${d.data().loja.toFixed(2)}`;
+            document.getElementById('saldo-moto').innerText = `R$ ${d.data().moto.toFixed(2)}`;
+        }
+    });
+</script>
+</body>
+</html>
