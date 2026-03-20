@@ -3,59 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Pedido - Oficial</title>
+    <title>Meu Pedido - Sistema Completo</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        :root { --red: #ea1d2c; --gray: #f4f4f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .tela { display: none; width: 100%; max-width: 400px; padding: 20px; }
+        :root { --red: #ea1d2c; --gray: #f4f4f5; --dark: #18181b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; }
+        .tela { display: none; min-height: 100vh; }
         .ativa { display: block; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .container { max-width: 450px; margin: auto; padding: 20px; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; text-align: left; }
         input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
         .senha-box { position: relative; }
-        .olho { position: absolute; right: 15px; top: 25px; cursor: pointer; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .olho { position: absolute; right: 15px; top: 25px; cursor: pointer; font-size: 20px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-red { background: var(--red); color: white; }
+        .header { background: var(--red); color: white; padding: 15px; font-weight: bold; text-align: center; }
+        .item-lista { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .btn-del { background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="tela-auth" class="tela ativa">
-    <div class="card">
-        <h1 style="color: var(--red); margin-bottom: 5px;">Meu Pedido</h1>
-        <p style="color: #666;">Acesse sua conta ou crie uma nova</p>
-        
-        <input type="email" id="email" placeholder="E-mail">
-        <div class="senha-box">
-            <input type="password" id="senha" placeholder="Senha">
-            <span class="olho" onclick="toggleSenha()">👁️</span>
+    <div class="container">
+        <h1 style="color: var(--red);">Meu Pedido</h1>
+        <div class="card">
+            <input type="email" id="email" placeholder="E-mail">
+            <div class="senha-box">
+                <input type="password" id="senha" placeholder="Senha">
+                <span class="olho" onclick="toggleSenha()">👁️</span>
+            </div>
+            <select id="tipo-usuario">
+                <option value="cliente">🛍️ Sou Cliente</option>
+                <option value="loja">🏪 Sou Loja (Dono)</option>
+                <option value="entregador">🛵 Sou Entregador</option>
+            </select>
+            <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
+            <button class="btn" style="background:#ddd" onclick="fazerCadastro()">CRIAR CONTA</button>
         </div>
-        
-        <select id="tipo-usuario">
-            <option value="cliente">🛍️ Sou Cliente</option>
-            <option value="loja">🏪 Sou Loja</option>
-            <option value="entregador">🛵 Sou Entregador</option>
-        </select>
-
-        <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
-        <button class="btn" style="background: #eee;" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
     </div>
 </div>
 
 <div id="area-loja" class="tela">
-    <div class="card">
-        <h2>🏪 Painel da Loja</h2>
-        <input type="text" id="p-nome" placeholder="Nome do Produto">
-        <input type="number" id="p-preco" placeholder="Preço R$">
-        <button class="btn btn-red" onclick="salvarProduto()">CADASTRAR ITEM</button>
+    <div class="header">PAINEL DO DONO</div>
+    <div class="container">
+        <div class="card">
+            <h4>+ Novo Produto</h4>
+            <input type="text" id="p-nome" placeholder="Nome do Lanche">
+            <input type="number" id="p-preco" placeholder="Preço R$">
+            <button class="btn btn-red" onclick="salvarProduto()">SALVAR NO BANCO</button>
+        </div>
+        <h4>Meu Cardápio</h4>
+        <div id="lista-produtos-loja" class="card">Carregando...</div>
         <button class="btn" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
-<div id="area-cliente" class="tela"><div class="card"><h2>🛍️ Área do Cliente</h2><button class="btn" onclick="deslogar()">SAIR</button></div></div>
-<div id="area-entregador" class="tela"><div class="card"><h2>🛵 Área do Entregador</h2><button class="btn" onclick="deslogar()">SAIR</button></div></div>
+<div id="area-entregador" class="tela">
+    <div class="header">SISTEMA DE ENTREGAS</div>
+    <div class="container">
+        <div class="card" style="background: var(--dark); color: white; text-align: center;">
+            <h3>🛵 Online</h3>
+            <p>Aguardando pedidos...</p>
+        </div>
+        <button class="btn" onclick="deslogar()">SAIR</button>
+    </div>
+</div>
+
+<div id="area-cliente" class="tela">
+    <div class="header">CARDÁPIO DIGITAL</div>
+    <div class="container">
+        <div id="cardapio-cliente"></div>
+        <button class="btn" onclick="deslogar()">SAIR</button>
+    </div>
+</div>
 
 <script>
     const firebaseConfig = {
@@ -79,22 +102,11 @@
         const e = document.getElementById('email').value;
         const s = document.getElementById('senha').value;
         const t = document.getElementById('tipo-usuario').value;
-
-        if(!e || !s) return alert("Preencha tudo!");
-
         try {
             const res = await auth.createUserWithEmailAndPassword(e, s);
-            // CRIANDO A COLEÇÃO "USUARIOS" MANUALMENTE NO BANCO
-            await db.collection("usuarios").doc(res.user.uid).set({
-                email: e,
-                tipo: t,
-                criadoEm: new Date().getTime()
-            });
-            alert("Conta criada com sucesso!");
+            await db.collection("usuarios").doc(res.user.uid).set({ email: e, tipo: t });
             abrirPainel(t);
-        } catch(err) {
-            alert("Erro ao cadastrar: " + err.message);
-        }
+        } catch(err) { alert("Erro: " + err.message); }
     }
 
     async function fazerLogin() {
@@ -103,19 +115,15 @@
         try {
             const res = await auth.signInWithEmailAndPassword(e, s);
             const doc = await db.collection("usuarios").doc(res.user.uid).get();
-            if(doc.exists) {
-                abrirPainel(doc.data().tipo);
-            } else {
-                alert("Usuário sem perfil no banco. Crie uma nova conta.");
-            }
-        } catch(err) {
-            alert("Erro no login: " + err.message);
-        }
+            if(doc.exists) abrirPainel(doc.data().tipo);
+            else alert("Perfil não encontrado. Crie uma conta.");
+        } catch(err) { alert("Login falhou!"); }
     }
 
     function abrirPainel(tipo) {
         document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
         document.getElementById('area-' + tipo).classList.add('ativa');
+        if(tipo === 'loja') carregarProdutosLoja();
     }
 
     async function salvarProduto() {
@@ -124,11 +132,40 @@
         if(n && p) {
             await db.collection("cardapio").add({
                 nome: n,
-                preco: p,
-                vendedor: auth.currentUser.uid
+                preco: parseFloat(p),
+                loja_id: auth.currentUser.uid,
+                data: Date.now()
             });
-            alert("Produto enviado ao banco de dados!");
+            alert("Produto Salvo!");
+            document.getElementById('p-nome').value = "";
+            document.getElementById('p-preco').value = "";
         }
+    }
+
+    function carregarProdutosLoja() {
+        db.collection("cardapio").where("loja_id", "==", auth.currentUser.uid)
+        .onSnapshot(snap => {
+            const div = document.getElementById('lista-produtos-loja');
+            div.innerHTML = "";
+            if(snap.empty) div.innerHTML = "Nenhum produto cadastrado.";
+            snap.forEach(doc => {
+                const item = doc.data();
+                div.innerHTML += `
+                <div class="item-lista">
+                    <span>${item.nome} - R$ ${item.preco}</span>
+                    <button class="btn-del" onclick="removerItem('${doc.id}')">🗑️</button>
+                </div>`;
+            });
+        }, err => {
+            console.error("Erro ao carregar:", err);
+            if(err.message.includes("index")) {
+                document.getElementById('lista-produtos-loja').innerHTML = "Aguardando criação do índice no Firebase...";
+            }
+        });
+    }
+
+    async function removerItem(id) {
+        if(confirm("Deseja excluir?")) await db.collection("cardapio").doc(id).delete();
     }
 
     function deslogar() { auth.signOut().then(() => location.reload()); }
