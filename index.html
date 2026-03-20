@@ -3,89 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Pedido Delivery - Completo</title>
+    <title>Meu Pedido - Oficial</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        :root { --red: #ea1d2c; --dark: #18181b; --gray: #f4f4f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; }
-        .tela { display: none; min-height: 100vh; }
+        :root { --red: #ea1d2c; --gray: #f4f4f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .tela { display: none; width: 100%; max-width: 400px; padding: 20px; }
         .ativa { display: block; }
-        .container { max-width: 450px; margin: auto; padding: 20px; text-align: center; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
-        
-        /* Estilo para o campo de senha com olhinho */
-        .senha-container { position: relative; width: 100%; }
-        .senha-container input { width: 100%; padding: 15px; padding-right: 45px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .olhinho { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; user-select: none; }
-
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .senha-box { position: relative; }
+        .olho { position: absolute; right: 15px; top: 25px; cursor: pointer; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .btn-red { background: var(--red); color: white; }
-        .header { background: var(--red); color: white; padding: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="tela-auth" class="tela ativa">
-    <div class="container">
-        <h1 style="color: var(--red);">Meu Pedido</h1>
-        <div class="card">
-            <h3>Acesse sua Conta</h3>
-            <input type="email" id="email" placeholder="E-mail">
-            
-            <div class="senha-container">
-                <input type="password" id="senha" placeholder="Sua senha">
-                <span class="olhinho" onclick="toggleSenha()">👁️</span>
-            </div>
-
-            <select id="tipo-usuario">
-                <option value="cliente">🛍️ Sou Cliente</option>
-                <option value="loja">🏪 Sou Loja</option>
-                <option value="entregador">🛵 Sou Entregador</option>
-            </select>
-            
-            <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
-            <button class="btn" style="background:#eee" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
+    <div class="card">
+        <h1 style="color: var(--red); margin-bottom: 5px;">Meu Pedido</h1>
+        <p style="color: #666;">Acesse sua conta ou crie uma nova</p>
+        
+        <input type="email" id="email" placeholder="E-mail">
+        <div class="senha-box">
+            <input type="password" id="senha" placeholder="Senha">
+            <span class="olho" onclick="toggleSenha()">👁️</span>
         </div>
-    </div>
-</div>
+        
+        <select id="tipo-usuario">
+            <option value="cliente">🛍️ Sou Cliente</option>
+            <option value="loja">🏪 Sou Loja</option>
+            <option value="entregador">🛵 Sou Entregador</option>
+        </select>
 
-<div id="area-entregador" class="tela">
-    <div class="header">PAINEL DO ENTREGADOR</div>
-    <div class="container">
-        <div class="card">
-            <h3>🛵 Modo Entregas</h3>
-            <p>Você está online. Aguarde pedidos próximos.</p>
-        </div>
-        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
+        <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
+        <button class="btn" style="background: #eee;" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
     </div>
 </div>
 
 <div id="area-loja" class="tela">
-    <div class="header">GERENCIAR LOJA</div>
-    <div class="container">
-        <div class="card">
-            <h4>Cadastrar Produto</h4>
-            <input type="text" id="p-nome" placeholder="Nome do Lanche">
-            <input type="number" id="p-preco" placeholder="Preço R$">
-            <button class="btn btn-red" onclick="salvarProduto()">SALVAR</button>
-        </div>
-        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
+    <div class="card">
+        <h2>🏪 Painel da Loja</h2>
+        <input type="text" id="p-nome" placeholder="Nome do Produto">
+        <input type="number" id="p-preco" placeholder="Preço R$">
+        <button class="btn btn-red" onclick="salvarProduto()">CADASTRAR ITEM</button>
+        <button class="btn" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
-<div id="area-cliente" class="tela">
-    <div class="header">CARDÁPIO</div>
-    <div class="container">
-        <div class="card">
-            <h3>Olá!</h3>
-            <p>Escolha seu lanche favorito abaixo.</p>
-        </div>
-        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
-    </div>
-</div>
+<div id="area-cliente" class="tela"><div class="card"><h2>🛍️ Área do Cliente</h2><button class="btn" onclick="deslogar()">SAIR</button></div></div>
+<div id="area-entregador" class="tela"><div class="card"><h2>🛵 Área do Entregador</h2><button class="btn" onclick="deslogar()">SAIR</button></div></div>
 
 <script>
     const firebaseConfig = {
@@ -100,11 +70,31 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Função para mostrar/esconder senha
     function toggleSenha() {
-        const campo = document.getElementById('senha');
-        const tipo = campo.type === 'password' ? 'text' : 'password';
-        campo.type = tipo;
+        const s = document.getElementById('senha');
+        s.type = s.type === 'password' ? 'text' : 'password';
+    }
+
+    async function fazerCadastro() {
+        const e = document.getElementById('email').value;
+        const s = document.getElementById('senha').value;
+        const t = document.getElementById('tipo-usuario').value;
+
+        if(!e || !s) return alert("Preencha tudo!");
+
+        try {
+            const res = await auth.createUserWithEmailAndPassword(e, s);
+            // CRIANDO A COLEÇÃO "USUARIOS" MANUALMENTE NO BANCO
+            await db.collection("usuarios").doc(res.user.uid).set({
+                email: e,
+                tipo: t,
+                criadoEm: new Date().getTime()
+            });
+            alert("Conta criada com sucesso!");
+            abrirPainel(t);
+        } catch(err) {
+            alert("Erro ao cadastrar: " + err.message);
+        }
     }
 
     async function fazerLogin() {
@@ -113,20 +103,14 @@
         try {
             const res = await auth.signInWithEmailAndPassword(e, s);
             const doc = await db.collection("usuarios").doc(res.user.uid).get();
-            if(doc.exists) abrirPainel(doc.data().tipo);
-            else alert("Erro: Perfil não encontrado no banco.");
-        } catch(err) { alert("Falha no login! Verifique e-mail e senha."); }
-    }
-
-    async function fazerCadastro() {
-        const e = document.getElementById('email').value;
-        const s = document.getElementById('senha').value;
-        const t = document.getElementById('tipo-usuario').value;
-        try {
-            const res = await auth.createUserWithEmailAndPassword(e, s);
-            await db.collection("usuarios").doc(res.user.uid).set({ email: e, tipo: t });
-            abrirPainel(t);
-        } catch(err) { alert("Erro ao cadastrar: " + err.message); }
+            if(doc.exists) {
+                abrirPainel(doc.data().tipo);
+            } else {
+                alert("Usuário sem perfil no banco. Crie uma nova conta.");
+            }
+        } catch(err) {
+            alert("Erro no login: " + err.message);
+        }
     }
 
     function abrirPainel(tipo) {
@@ -138,8 +122,12 @@
         const n = document.getElementById('p-nome').value;
         const p = document.getElementById('p-preco').value;
         if(n && p) {
-            await db.collection("cardapio").add({ nome: n, preco: p, loja_id: auth.currentUser.uid });
-            alert("Produto Cadastrado!");
+            await db.collection("cardapio").add({
+                nome: n,
+                preco: p,
+                vendedor: auth.currentUser.uid
+            });
+            alert("Produto enviado ao banco de dados!");
         }
     }
 
