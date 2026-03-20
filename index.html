@@ -3,87 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Pedido Delivery - Pro</title>
+    <title>Meu Pedido Delivery - Completo</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        :root { --red: #ea1d2c; --dark: #18181b; --gray: #f4f4f5; --green: #22c55e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; padding: 0; }
+        :root { --red: #ea1d2c; --dark: #18181b; --gray: #f4f4f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; }
         .tela { display: none; min-height: 100vh; }
         .ativa { display: block; }
-        .container { max-width: 450px; margin: auto; padding: 20px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; position: relative; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .senha-container { position: relative; }
-        .btn-ver { position: absolute; right: 10px; top: 18px; background: none; border: none; cursor: pointer; font-size: 18px; color: #666; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 16px; }
+        .container { max-width: 450px; margin: auto; padding: 20px; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
+        
+        /* Estilo para o campo de senha com olhinho */
+        .senha-container { position: relative; width: 100%; }
+        .senha-container input { width: 100%; padding: 15px; padding-right: 45px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .olhinho { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; user-select: none; }
+
+        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-red { background: var(--red); color: white; }
-        .btn-del { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; padding: 8px; border-radius: 5px; cursor: pointer; }
-        .header { background: var(--red); color: white; padding: 15px; text-align: center; font-weight: bold; sticky: top; }
-        .item-cardapio { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .header { background: var(--red); color: white; padding: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="tela-auth" class="tela ativa">
-    <div class="container" style="text-align: center; padding-top: 40px;">
+    <div class="container">
         <h1 style="color: var(--red);">Meu Pedido</h1>
         <div class="card">
-            <h3>Entrar</h3>
+            <h3>Acesse sua Conta</h3>
             <input type="email" id="email" placeholder="E-mail">
             
             <div class="senha-container">
-                <input type="password" id="senha" placeholder="Sua Senha">
-                <button type="button" class="btn-ver" onclick="toggleSenha()">👁️</button>
+                <input type="password" id="senha" placeholder="Sua senha">
+                <span class="olhinho" onclick="toggleSenha()">👁️</span>
             </div>
 
             <select id="tipo-usuario">
-                <option value="cliente">Sou Cliente</option>
-                <option value="loja">Sou Loja (Dono)</option>
-                <option value="moto">Sou Entregador</option>
+                <option value="cliente">🛍️ Sou Cliente</option>
+                <option value="loja">🏪 Sou Loja</option>
+                <option value="entregador">🛵 Sou Entregador</option>
             </select>
+            
             <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
-            <button class="btn" style="background:#f1f1f1" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
+            <button class="btn" style="background:#eee" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
         </div>
+    </div>
+</div>
+
+<div id="area-entregador" class="tela">
+    <div class="header">PAINEL DO ENTREGADOR</div>
+    <div class="container">
+        <div class="card">
+            <h3>🛵 Modo Entregas</h3>
+            <p>Você está online. Aguarde pedidos próximos.</p>
+        </div>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
 <div id="area-loja" class="tela">
-    <div class="header">PAINEL DO ESTABELECIMENTO</div>
+    <div class="header">GERENCIAR LOJA</div>
     <div class="container">
         <div class="card">
             <h4>Cadastrar Produto</h4>
-            <input type="text" id="p-nome" placeholder="Nome (Ex: X-Tudo)" oninput="buscarFotos(this.value)">
-            <div id="fotos-sugestao" style="display:flex; gap:8px; overflow-x:auto; margin:5px 0; min-height: 80px;"></div>
-            <input type="hidden" id="p-foto-url">
+            <input type="text" id="p-nome" placeholder="Nome do Lanche">
             <input type="number" id="p-preco" placeholder="Preço R$">
-            <button class="btn btn-red" onclick="salvarProduto()">SALVAR NO CARDÁPIO</button>
+            <button class="btn btn-red" onclick="salvarProduto()">SALVAR</button>
         </div>
-
-        <h4>Meu Catálogo / Apagar Itens</h4>
-        <div id="catalogo-loja" class="card">Carregando itens...</div>
-
-        <h4>Pedidos Recebidos</h4>
-        <div id="vendas-loja" class="card">Nenhum pedido ainda.</div>
-        
-        <button class="btn" onclick="deslogar()">SAIR</button>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
-<div id="area-moto" class="tela">
-    <div class="header">SISTEMA DO ENTREGADOR</div>
+<div id="area-cliente" class="tela">
+    <div class="header">CARDÁPIO</div>
     <div class="container">
-        <div class="card" style="background:var(--dark); color:white; text-align:center;">
-            Disponível para entregas
+        <div class="card">
+            <h3>Olá!</h3>
+            <p>Escolha seu lanche favorito abaixo.</p>
         </div>
-        <div id="lista-entregas">Buscando rotas...</div>
-        <button class="btn" onclick="deslogar()">SAIR</button>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
 <script>
-    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyAhjdwdfAXf1H7QG9Mn0VT_L43LdvnueaQ",
         authDomain: "meu-pedido-delivery-7cd35.firebaseapp.com",
@@ -96,13 +100,13 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // FUNÇÃO PARA VER SENHA
+    // Função para mostrar/esconder senha
     function toggleSenha() {
-        const input = document.getElementById('senha');
-        input.type = input.type === 'password' ? 'text' : 'password';
+        const campo = document.getElementById('senha');
+        const tipo = campo.type === 'password' ? 'text' : 'password';
+        campo.type = tipo;
     }
 
-    // LOGIN E PERFIS
     async function fazerLogin() {
         const e = document.getElementById('email').value;
         const s = document.getElementById('senha').value;
@@ -110,7 +114,8 @@
             const res = await auth.signInWithEmailAndPassword(e, s);
             const doc = await db.collection("usuarios").doc(res.user.uid).get();
             if(doc.exists) abrirPainel(doc.data().tipo);
-        } catch(err) { alert("Erro: Verifique e-mail e senha!"); }
+            else alert("Erro: Perfil não encontrado no banco.");
+        } catch(err) { alert("Falha no login! Verifique e-mail e senha."); }
     }
 
     async function fazerCadastro() {
@@ -121,72 +126,24 @@
             const res = await auth.createUserWithEmailAndPassword(e, s);
             await db.collection("usuarios").doc(res.user.uid).set({ email: e, tipo: t });
             abrirPainel(t);
-        } catch(err) { alert("Erro ao criar conta: " + err.message); }
+        } catch(err) { alert("Erro ao cadastrar: " + err.message); }
     }
 
     function abrirPainel(tipo) {
         document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
         document.getElementById('area-' + tipo).classList.add('ativa');
-        if(tipo === 'loja') carregarGerenciador();
     }
 
-    // BUSCA DE FOTOS
-    async function buscarFotos(termo) {
-        if(termo.length < 3) return;
-        const div = document.getElementById('fotos-sugestao');
-        try {
-            const res = await fetch(`https://api.unsplash.com/search/photos?query=${termo}+food&client_id=k1f4oFXu0vqQwrPkW0JE0d8TXbYI5mrjpealXUX-OoQ&per_page=4`);
-            const data = await res.json();
-            div.innerHTML = "";
-            data.results.forEach(f => {
-                const img = document.createElement('img');
-                img.src = f.urls.small;
-                img.style = "width:70px; height:70px; border-radius:5px; cursor:pointer; object-fit:cover;";
-                img.onclick = () => {
-                    document.getElementById('p-foto-url').value = f.urls.small;
-                    alert("Foto selecionada!");
-                };
-                div.appendChild(img);
-            });
-        } catch(e) {}
-    }
-
-    // GERENCIAR CARDÁPIO (SALVAR E EXCLUIR)
     async function salvarProduto() {
         const n = document.getElementById('p-nome').value;
-        const p = parseFloat(document.getElementById('p-preco').value);
-        const f = document.getElementById('p-foto-url').value;
-        if(n && p && f) {
-            await db.collection("cardapio").add({ 
-                nome: n, preco: p, foto: f, loja_id: auth.currentUser.uid, data: Date.now() 
-            });
-            alert("Produto Salvo!");
-            document.getElementById('p-nome').value = "";
-        } else { alert("Preencha tudo e escolha uma foto!"); }
-    }
-
-    function carregarGerenciador() {
-        db.collection("cardapio").where("loja_id", "==", auth.currentUser.uid).onSnapshot(snap => {
-            const div = document.getElementById('catalogo-loja');
-            div.innerHTML = "";
-            snap.forEach(doc => {
-                const item = doc.data();
-                div.innerHTML += `
-                <div class="item-cardapio">
-                    <span><b>${item.nome}</b> - R$ ${item.preco.toFixed(2)}</span>
-                    <button class="btn-del" onclick="apagarItem('${doc.id}')">🗑️ APAGAR</button>
-                </div>`;
-            });
-        });
-    }
-
-    async function apagarItem(id) {
-        if(confirm("Tem certeza que deseja excluir este lanche?")) {
-            await db.collection("cardapio").doc(id).delete();
+        const p = document.getElementById('p-preco').value;
+        if(n && p) {
+            await db.collection("cardapio").add({ nome: n, preco: p, loja_id: auth.currentUser.uid });
+            alert("Produto Cadastrado!");
         }
     }
 
-    function deslogar() { auth.signOut(); location.reload(); }
+    function deslogar() { auth.signOut().then(() => location.reload()); }
 </script>
 </body>
 </html>
