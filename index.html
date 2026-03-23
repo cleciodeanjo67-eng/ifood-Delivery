@@ -3,44 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Pedido - Cardápio Ativo</title>
+    <title>Meu Pedido Delivery - Sistema Integrado</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        :root { --red: #ea1d2c; --gray: #f4f4f5; --white: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; }
+        :root { --red: #ea1d2c; --dark: #18181b; --gray: #f4f4f5; --green: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; padding: 0; }
         .tela { display: none; min-height: 100vh; }
         .ativa { display: block; }
         .container { max-width: 450px; margin: auto; padding: 20px; }
-        .card { background: var(--white); padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; position: relative; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        
+        /* Estilo do campo de senha com olhinho */
+        .senha-container { position: relative; }
+        .btn-ver { position: absolute; right: 10px; top: 18px; background: none; border: none; cursor: pointer; font-size: 18px; }
+        
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 16px; }
         .btn-red { background: var(--red); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-del { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
         .header { background: var(--red); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
         
-        /* Estilo dos itens do cardápio para o cliente */
-        .item-cardapio { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .item-info h4 { margin: 0; color: #333; }
-        .item-info p { margin: 5px 0 0; color: var(--red); font-weight: bold; }
-        .btn-pedir { background: #22c55e; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .item-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
     </style>
 </head>
 <body>
 
 <div id="tela-auth" class="tela ativa">
-    <div class="container" style="text-align: center;">
+    <div class="container" style="text-align: center; padding-top: 40px;">
         <h1 style="color: var(--red);">Meu Pedido</h1>
         <div class="card">
             <input type="email" id="email" placeholder="E-mail">
-            <input type="password" id="senha" placeholder="Senha">
+            <div class="senha-container">
+                <input type="password" id="senha" placeholder="Senha">
+                <button type="button" class="btn-ver" onclick="toggleSenha()">👁️</button>
+            </div>
             <select id="tipo-usuario">
                 <option value="cliente">🛍️ Sou Cliente</option>
-                <option value="loja">🏪 Sou Loja</option>
+                <option value="loja">🏪 Sou Loja (Dono)</option>
                 <option value="entregador">🛵 Sou Entregador</option>
             </select>
             <button class="btn btn-red" onclick="fazerLogin()">ENTRAR</button>
-            <button class="btn" style="background:#eee" onclick="fazerCadastro()">CRIAR CONTA</button>
+            <button class="btn" style="background:#ddd" onclick="fazerCadastro()">CRIAR CONTA NOVA</button>
         </div>
     </div>
 </div>
@@ -49,22 +55,35 @@
     <div class="header">CARDÁPIO DIGITAL</div>
     <div class="container">
         <div id="lista-cardapio-cliente">
-            <p style="text-align: center; color: #666;">Buscando lanches gostosos...</p>
+            <p style="text-align: center; color: #666;">Carregando lanches...</p>
         </div>
-        <button class="btn" onclick="deslogar()">SAIR</button>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
 <div id="area-loja" class="tela">
-    <div class="header">MEU ESTABELECIMENTO</div>
+    <div class="header">PAINEL DO DONO</div>
     <div class="container">
         <div class="card">
-            <h4>Cadastrar Novo Lanche</h4>
+            <h4>Cadastrar Produto</h4>
             <input type="text" id="p-nome" placeholder="Nome do Lanche">
             <input type="number" id="p-preco" placeholder="Preço R$">
-            <button class="btn btn-red" onclick="salvarProduto()">SALVAR NO CARDÁPIO</button>
+            <button class="btn btn-red" onclick="salvarProduto()">SALVAR NO BANCO</button>
         </div>
-        <button class="btn" onclick="deslogar()">SAIR</button>
+        <h4>Gerenciar Itens</h4>
+        <div id="meu-gerenciador-loja" class="card"></div>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
+    </div>
+</div>
+
+<div id="area-entregador" class="tela">
+    <div class="header">PAINEL DE ENTREGAS</div>
+    <div class="container">
+        <div class="card" style="text-align: center;">
+            <h3>🛵 Modo Online</h3>
+            <p>Buscando pedidos para entrega...</p>
+        </div>
+        <button class="btn" style="background:#ddd" onclick="deslogar()">SAIR</button>
     </div>
 </div>
 
@@ -81,14 +100,20 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    function toggleSenha() {
+        const x = document.getElementById("senha");
+        x.type = x.type === "password" ? "text" : "password";
+    }
+
     async function fazerLogin() {
         const e = document.getElementById('email').value;
         const s = document.getElementById('senha').value;
         try {
             const res = await auth.signInWithEmailAndPassword(e, s);
             const doc = await db.collection("usuarios").doc(res.user.uid).get();
-            abrirPainel(doc.data().tipo);
-        } catch(err) { alert("Login falhou!"); }
+            if(doc.exists) abrirPainel(doc.data().tipo);
+            else alert("Erro: Perfil não encontrado. Crie uma conta.");
+        } catch(err) { alert("Login falhou! Verifique os dados."); }
     }
 
     async function fazerCadastro() {
@@ -99,58 +124,72 @@
             const res = await auth.createUserWithEmailAndPassword(e, s);
             await db.collection("usuarios").doc(res.user.uid).set({ email: e, tipo: t });
             abrirPainel(t);
-        } catch(err) { alert("Erro ao cadastrar!"); }
+        } catch(err) { alert("Erro ao cadastrar: " + err.message); }
     }
 
     function abrirPainel(tipo) {
         document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
         document.getElementById('area-' + tipo).classList.add('ativa');
         if(tipo === 'cliente') carregarCardapio();
+        if(tipo === 'loja') carregarGerenciadorLoja();
     }
 
-    // --- FUNÇÃO PARA O CLIENTE VER O CARDÁPIO ---
-    function carregarCardapio() {
-        const divCardapio = document.getElementById('lista-cardapio-cliente');
-        
-        // Busca todos os produtos da coleção "cardapio"
-        db.collection("cardapio").onSnapshot((querySnapshot) => {
-            divCardapio.innerHTML = ""; // Limpa a tela antes de carregar
-            
-            if (querySnapshot.empty) {
-                divCardapio.innerHTML = "<p style='text-align:center;'>Nenhum lanche cadastrado ainda.</p>";
-                return;
-            }
-
-            querySnapshot.forEach((doc) => {
-                const item = doc.data();
-                divCardapio.innerHTML += `
-                    <div class="card item-cardapio">
-                        <div class="item-info">
-                            <h4>${item.nome}</h4>
-                            <p>R$ ${parseFloat(item.preco).toFixed(2)}</p>
-                        </div>
-                        <button class="btn-pedir" onclick="fazerPedido('${item.nome}')">PEDIR</button>
-                    </div>
-                `;
-            });
-        });
-    }
-
-    function fazerPedido(nomeLanche) {
-        alert("Você pediu um " + nomeLanche + "! Em breve teremos o carrinho completo.");
-    }
-
+    // --- FUNÇÕES DA LOJA ---
     async function salvarProduto() {
         const n = document.getElementById('p-nome').value;
         const p = document.getElementById('p-preco').value;
         if(n && p) {
-            await db.collection("cardapio").add({ nome: n, preco: p, loja_id: auth.currentUser.uid });
-            alert("Lanche salvo com sucesso!");
+            await db.collection("cardapio").add({
+                nome: n,
+                preco: parseFloat(p),
+                loja_id: auth.currentUser.uid,
+                data: Date.now()
+            });
+            alert("Sucesso!");
             document.getElementById('p-nome').value = "";
             document.getElementById('p-preco').value = "";
         }
     }
 
+    function carregarGerenciadorLoja() {
+        db.collection("cardapio").where("loja_id", "==", auth.currentUser.uid)
+        .onSnapshot(snap => {
+            const div = document.getElementById('meu-gerenciador-loja');
+            div.innerHTML = "";
+            snap.forEach(doc => {
+                const item = doc.data();
+                div.innerHTML += `
+                <div class="item-flex">
+                    <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
+                    <button class="btn-del" onclick="apagarItem('${doc.id}')">Excluir</button>
+                </div>`;
+            });
+        });
+    }
+
+    async function apagarItem(id) { if(confirm("Apagar item?")) await db.collection("cardapio").doc(id).delete(); }
+
+    // --- FUNÇÃO DO CLIENTE ---
+    function carregarCardapio() {
+        const divCardapio = document.getElementById('lista-cardapio-cliente');
+        db.collection("cardapio").onSnapshot(snap => {
+            divCardapio.innerHTML = "";
+            if(snap.empty) { divCardapio.innerHTML = "<p>Nenhum lanche no momento.</p>"; return; }
+            snap.forEach(doc => {
+                const item = doc.data();
+                divCardapio.innerHTML += `
+                <div class="card item-flex">
+                    <div>
+                        <h4 style="margin:0">${item.nome}</h4>
+                        <p style="margin:5px 0 0; color:var(--red); font-weight:bold">R$ ${item.preco.toFixed(2)}</p>
+                    </div>
+                    <button class="btn-green" style="width:auto; padding:8px 15px" onclick="fazerPedido('${item.nome}')">PEDIR</button>
+                </div>`;
+            });
+        });
+    }
+
+    function fazerPedido(nome) { alert("Pedido de " + nome + " enviado!"); }
     function deslogar() { auth.signOut().then(() => location.reload()); }
 </script>
 </body>
